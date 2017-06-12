@@ -18,9 +18,9 @@ var (
 
 type Connector struct {
 	connection *bongo.Connection
-	Users      *Collector
-	Media      *Collector
-	Torrents   *Collector
+	Users      *bongo.Collection
+	Media      *bongo.Collection
+	Torrents   *bongo.Collection
 }
 
 type Document struct {
@@ -40,9 +40,12 @@ func InitDB(name, host string) {
 
 	DB = &Connector{
 		connection: connection,
-		Users:      NewCollector(COLLECTION_USERS, connection),
-		Media:      NewCollector(COLLECTION_MEDIA, connection),
-		Torrents:   NewCollector(COLLECTION_TORRENTS, connection),
+		//Users:      NewCollector(COLLECTION_USERS, connection),
+		//Media:      NewCollector(COLLECTION_MEDIA, connection),
+		//Torrents:   NewCollector(COLLECTION_TORRENTS, connection),
+		Users:    connection.Collection(COLLECTION_USERS),
+		Media:    connection.Collection(COLLECTION_MEDIA),
+		Torrents: connection.Collection(COLLECTION_TORRENTS),
 	}
 }
 

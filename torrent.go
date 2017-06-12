@@ -11,12 +11,8 @@ type TorrentResponse struct {
 	List         []*Torrent `json:"torrents"`
 }
 
-func (r *TorrentResponse) New() interface{} {
-	return &Torrent{}
-}
-
-func (r *TorrentResponse) Add(m interface{}) {
-	r.List = append(r.List, m.(*Torrent))
+func (r *TorrentResponse) Add(t *Torrent) {
+	r.List = append(r.List, t)
 }
 
 type Torrent struct {
@@ -54,54 +50,79 @@ type Torrent struct {
 	Updated   time.Time `bson:"updated_at"`
 }
 
-type TorrentQuery struct {
-	BaseQuery
-	Exact bool
-}
+//type TorrentQuery struct {
+//	BaseQuery
+//	Exact bool
+//}
 
 //func (q *TorrentQuery) M() bson.M {
 //	// TODO: handle non-exact queries
 //	return q.Query
 //}
 
-func NewTorrentQuery() *TorrentQuery {
-	return &TorrentQuery{
-		BaseQuery: BaseQuery{Query: bson.M{"verified": true}},
-		Exact:     true,
+func TorrentIndex(page int) (*TorrentResponse, error) {
+	response := &TorrentResponse{}
+
+	skip := (page - 1) * PER_PAGE
+
+	results := DB.Torrents.Find(bson.M{})
+	results.Query.Sort("-created_at")
+	results.Query.Skip(skip)
+	results.Query.Limit(PER_PAGE)
+
+	for i := 0; i < PER_PAGE; i++ {
+		t := &Torrent{}
+		results.Next(t)
+		response.Add(t)
 	}
-}
 
-func TorrentFind(id string) (*Torrent, error) {
-	media := &Torrent{}
-
-	err := DB.Torrents.Find(id, media)
+	pi, err := results.Paginate(PER_PAGE, page)
 	if err != nil {
 		return nil, err
 	}
+	response.Pagination(pi)
 
-	return media, nil
+	return response, nil
 }
 
-func TorrentSearch(page int, query bson.M) (*TorrentResponse, error) {
-	r := &TorrentResponse{}
-
-	err := DB.Torrents.Where(query).Sort("-created_at").Page(page, r)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
-}
-
-func (m *Torrent) Save() error {
-	return DB.Torrents.Save(m)
-}
-
-func (m *Torrent) Find(id string) (*Torrent, error) {
-	err := DB.Torrents.Find(id, m)
-	if err != nil {
-		return nil, err
-	}
-
-	return m, nil
-}
+//func NewTorrentQuery() *TorrentQuery {
+//	return &TorrentQuery{
+//		BaseQuery: BaseQuery{Query: bson.M{"verified": true}},
+//		Exact:     true,
+//	}
+//}
+//
+//func TorrentFind(id string) (*Torrent, error) {
+//	media := &Torrent{}
+//
+//	err := DB.Torrents.Find(id, media)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return media, nil
+//}
+//
+//func TorrentSearch(page int, query bson.M) (*TorrentResponse, error) {
+//	r := &TorrentResponse{}
+//
+//	err := DB.Torrents.Where(query).Sort("-created_at").Page(page, r)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return r, nil
+//}
+//
+//func (m *Torrent) Save() error {
+//	return DB.Torrents.Save(m)
+//}
+//
+//func (m *Torrent) Find(id string) (*Torrent, error) {
+//	err := DB.Torrents.Find(id, m)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return m, nil
+//}
