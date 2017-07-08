@@ -6,9 +6,9 @@ import (
 	"github.com/go-bongo/bongo"
 )
 
-const COLLECTION_USERS = "Users"
-const COLLECTION_MEDIA = "Media"
-const COLLECTION_TORRENTS = "Torrents"
+const COLLECTION_USERS = "users"
+const COLLECTION_MEDIA = "media"
+const COLLECTION_TORRENTS = "torrents"
 const PER_PAGE = 25
 
 var (
@@ -28,22 +28,32 @@ type Document struct {
 }
 
 func InitDB(name, host string) {
-	config := &bongo.Config{
-		ConnectionString: host,
-		Database:         name,
+	torch, err := bongo.Connect(&bongo.Config{ConnectionString: host, Database: "torch_development"})
+	if err != nil {
+		panic(fmt.Sprintf("bongo error: (%s/%s) %s", host, name, err))
 	}
-
-	connection, err := bongo.Connect(config)
+	media, err := bongo.Connect(&bongo.Config{ConnectionString: host, Database: "seer_development"})
+	if err != nil {
+		panic(fmt.Sprintf("bongo error: (%s/%s) %s", host, name, err))
+	}
+	dashotv, err := bongo.Connect(&bongo.Config{ConnectionString: host, Database: "dashotv"})
 	if err != nil {
 		panic(fmt.Sprintf("bongo error: (%s/%s) %s", host, name, err))
 	}
 
 	DB = &Connector{
-		connection: connection,
-		Users:      connection.Collection(COLLECTION_USERS),
-		Media:      connection.Collection(COLLECTION_MEDIA),
-		Torrents:   connection.Collection(COLLECTION_TORRENTS),
+		Users:    dashotv.Collection(COLLECTION_USERS),
+		Media:    media.Collection(COLLECTION_MEDIA),
+		Torrents: torch.Collection(COLLECTION_TORRENTS),
 	}
+}
+
+func connect(db, host, collection string) (*bongo.Collection, error) {
+	c, err := bongo.Connect(&bongo.Config{ConnectionString: host, Database: db})
+	if err != nil {
+		return nil, err
+	}
+	return c.Collection(collection), nil
 }
 
 func String(s string) *string {
@@ -53,3 +63,5 @@ func String(s string) *string {
 func Int(i int) *int {
 	return &i
 }
+
+type M map[string]interface{}

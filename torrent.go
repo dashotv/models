@@ -56,7 +56,7 @@ func TorrentIndex(page int) (*TorrentResponse, error) {
 	skip := (page - 1) * PER_PAGE
 
 	results := DB.Torrents.Find(bson.M{})
-	results.Query.Sort("-created_at")
+	results.Query.Sort("-published_at")
 	results.Query.Skip(skip)
 	results.Query.Limit(PER_PAGE)
 
@@ -71,6 +71,17 @@ func TorrentIndex(page int) (*TorrentResponse, error) {
 		return nil, err
 	}
 	response.Pagination(pi)
+
+	return response, nil
+}
+
+func TorrentsFind(id string) (*Torrent, error) {
+	response := &Torrent{}
+
+	err := DB.Torrents.FindById(bson.ObjectIdHex(id), response)
+	if err != nil {
+		return nil, err
+	}
 
 	return response, nil
 }

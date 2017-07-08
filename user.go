@@ -15,7 +15,7 @@ type User struct {
 	Email              string
 	Password           string `bson:",omitempty"`
 	PasswordHash       string
-	Token              string
+	Refresh            string
 }
 
 func UserFind(email string) (*User, error) {
@@ -29,9 +29,22 @@ func UserFind(email string) (*User, error) {
 	return user, nil
 }
 
+func UserRefresh(email, refresh string) (*User, error) {
+	user := &User{}
+
+	err := DB.Users.FindOne(bson.M{"email": email, "refresh": refresh}, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (u *User) Save() error {
-	u.PasswordHash = cryptPassword(u.Password)
-	u.Password = "" // clear password, so we don't store in plain text
+	if u.Password != "" {
+		u.PasswordHash = cryptPassword(u.Password)
+		u.Password = "" // clear password, so we don't store in plain text
+	}
 	return DB.Users.Save(u)
 }
 
