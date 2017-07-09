@@ -29,6 +29,16 @@ func (s *TorrentSearch) Page(p int) int {
 	return (p - 1) * PER_PAGE
 }
 
+func (s *TorrentSearch) Name(v string) {
+	if v != "" {
+		s.query["name"] = v
+	}
+}
+
+//func (s *TorrentSearch) NameContains(v string) {
+//	s.query["name"] = regexp.MustCompile(v)
+//}
+
 func (s *TorrentSearch) Type(v string) {
 	if v != "" {
 		s.query["type"] = v
@@ -41,15 +51,11 @@ func (s *TorrentSearch) Source(v string) {
 	}
 }
 
-func (s *TorrentSearch) Name(v string) {
+func (s *TorrentSearch) Resolution(v string) {
 	if v != "" {
-		s.query["name"] = v
+		s.query["resolution"] = v
 	}
 }
-
-//func (s *TorrentSearch) NameContains(v string) {
-//	s.query["name"] = regexp.MustCompile(v)
-//}
 
 func (s *TorrentSearch) Season(v int) {
 	if v != 0 {
@@ -85,12 +91,6 @@ func (s *TorrentSearch) Uncensored(v bool) {
 
 func (s *TorrentSearch) Bluray(v bool) {
 	s.query["bluray"] = v
-}
-
-func (s *TorrentSearch) Resolution(v string) {
-	if v != "" {
-		s.query["resolution"] = v
-	}
 }
 
 func (s *TorrentSearch) Results(page int) (*TorrentResponse, error) {
