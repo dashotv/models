@@ -9,9 +9,7 @@ type TorrentSearch struct {
 
 func NewTorrentSearch() *TorrentSearch {
 	return &TorrentSearch{
-		query: M{
-			"verified": true,
-		},
+		query: M{}, // set search defaults in the UI, not in the backend
 		sort:  "-published_at",
 		limit: PER_PAGE,
 	}
