@@ -6,17 +6,42 @@ import (
 	"github.com/go-bongo/bongo"
 )
 
-const COLLECTION_USERS = "users"
-const COLLECTION_MEDIA = "media"
-const COLLECTION_TORRENTS = "torrents"
 const PER_PAGE = 25
 
 var (
 	// DB holds the db connection
-	DB *Connector
+	DB            *Connector
+	defaultConfig = &Config{
+		Host: "127.0.0.1",
+		Torrents: &ConfigEntry{
+			Database:   "torch_development",
+			Collection: "torrents",
+		},
+		Media: &ConfigEntry{
+			Database:   "seer_development",
+			Collection: "media",
+		},
+		Users: &ConfigEntry{
+			Database:   "dashotv",
+			Collection: "users",
+		},
+	}
 )
 
+type Config struct {
+	Host     string
+	Torrents *ConfigEntry
+	Media    *ConfigEntry
+	Users    *ConfigEntry
+}
+
+type ConfigEntry struct {
+	Database   string
+	Collection string
+}
+
 type Connector struct {
+	config     *Config
 	connection *bongo.Connection
 	Users      *bongo.Collection
 	Media      *bongo.Collection
@@ -27,24 +52,25 @@ type Document struct {
 	bongo.DocumentBase `bson:",inline"`
 }
 
-func InitDB(name, host string) {
-	torch, err := bongo.Connect(&bongo.Config{ConnectionString: host, Database: "torch_development"})
+func InitDB(c *Config) {
+	torch, err := bongo.Connect(&bongo.Config{ConnectionString: c.Host, Database: c.Torrents.Database})
 	if err != nil {
-		panic(fmt.Sprintf("bongo error: (%s/%s) %s", host, name, err))
+		panic(fmt.Sprintf("bongo error: (%s/%s) %s", c.Host, c.Torrents.Database, err))
 	}
-	media, err := bongo.Connect(&bongo.Config{ConnectionString: host, Database: "seer_development"})
+	media, err := bongo.Connect(&bongo.Config{ConnectionString: c.Host, Database: c.Media.Database})
 	if err != nil {
-		panic(fmt.Sprintf("bongo error: (%s/%s) %s", host, name, err))
+		panic(fmt.Sprintf("bongo error: (%s/%s) %s", c.Host, c.Media.Database, err))
 	}
-	dashotv, err := bongo.Connect(&bongo.Config{ConnectionString: host, Database: "dashotv"})
+	dashotv, err := bongo.Connect(&bongo.Config{ConnectionString: c.Host, Database: c.Users.Database})
 	if err != nil {
-		panic(fmt.Sprintf("bongo error: (%s/%s) %s", host, name, err))
+		panic(fmt.Sprintf("bongo error: (%s/%s) %s", c.Host, c.Users.Database, err))
 	}
 
 	DB = &Connector{
-		Users:    dashotv.Collection(COLLECTION_USERS),
-		Media:    media.Collection(COLLECTION_MEDIA),
-		Torrents: torch.Collection(COLLECTION_TORRENTS),
+		config:   c,
+		Users:    dashotv.Collection(c.Users.Collection),
+		Media:    media.Collection(c.Media.Collection),
+		Torrents: torch.Collection(c.Torrents.Collection),
 	}
 }
 

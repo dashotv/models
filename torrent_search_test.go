@@ -2,12 +2,11 @@ package models
 
 import (
 	"fmt"
-	"os"
 	"testing"
 )
 
 func TestNewTorrentSearch(t *testing.T) {
-	InitDB(os.Getenv("DATABASE_NAME"), os.Getenv("DATABASE_HOST"))
+	InitDB(defaultConfig)
 
 	s := NewTorrentSearch()
 	s.Name("preacher")
